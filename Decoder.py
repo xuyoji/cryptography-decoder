@@ -13,6 +13,7 @@ class Decoder:
         self.alpha_freq_dic = {'e':0.1249, 't':0.0928, 'a':0.0804, 'o':0.0764, 'i':0.0757, 'n':0.0723, 's':0.0651, 'r':0.0628, 'h':0.0505,
         'l':0.0407, 'd':0.0382, 'c':0.0334, 'u':0.0273, 'm':0.0251, 'f':0.024, 'p':0.0214, 'g':0.0187, 'w':0.0168,'y':0.0166, 'b':0.0148, 'v':0.0105,
         'k':0.0054, 'x':0.0023, 'j':0.0016, 'q':0.0012, 'z':0.001}
+        self.sub_list = []
 
     def read_text(file):
         with open(file, 'r') as f:
@@ -107,30 +108,44 @@ class Decoder:
         dic, total = Decoder.alpha_freq_count(self.ct, 1, 0)
         real_freq = sorted(dic.items(), key=lambda x:x[1])
         self.get_all_gram_freq()
-
+        
         sub_e = real_freq[-1][0].upper()+'e'
-        sub_order = [sub_e,'Ga','Id','On','Ut','Zh', 'So','Fw', 'Nl', 'Db', 'Ly', 'Mm', 'Ei', 'Wg', 'Yr', 'Hf', 'Pu', 'Ks', 'Av', 'Qj', 'Xp', 'Jc']
-
-        for k,v in enumerate(sub_order):        
+        sub_record = [sub_e] + self.sub_list
+        for k,v in enumerate(sub_record):
             sub_dic[v[0]] = v[1]
-            print('\n\n-----fixed substitution rule-----')
-            for i in range(k+1):
-                print(sub_order[i][0]+'-'+sub_order[i][1], end = '  ')
-            print('\n')
-            test_word = 'the'
-            fix_word_list = self.find_word(self.ct, dic, test_word, 1, sub_dic)
-
-            print('-------all meaningful gram-------')
-            self.output_all_gram_freq(sub_dic)
-
-            print('-------word possibilty test-------')
-            print('->test word = \'%s\''%test_word)
-            print([(''.join([sub_dic[s.upper()] for s in fix_word[1]]), fix_word[0]) for fix_word in fix_word_list])
-            print()
-
-            print('--------current text--------')
-            self.output_part_plain_text(self.ct, sub_dic)
-
+        ipt = ('-s', sub_e)
+        while True:
+            if not ipt:
+                pass
+            elif ipt[0] == '-t':
+                print('-------word possibilty test-------')
+                test_word = ipt[1]
+                fix_word_list = self.find_word(self.ct, dic, test_word, 1, sub_dic)
+                print('->test word = \'%s\''%test_word)
+                print([(''.join([sub_dic[s.upper()] for s in fix_word[1]]), fix_word[0]) for fix_word in fix_word_list])
+                print()
+            elif ipt[0] == '-s':
+                v = ipt[1]
+                add = True
+                for j,_ in enumerate(sub_record):
+                    print(_, v)
+                    if _[0] == v[0]:
+                        sub_record[j] = v
+                        add = False
+                        break
+                if add:
+                    sub_record.append(v)
+                sub_dic[v[0]] = v[1]
+                print('\n\n-----fixed substitution rule-----')
+                for i in range(len(sub_record)):
+                    print(sub_record[i][0]+'-'+sub_record[i][1], end = '  ')
+                print('\n')
+                print('-------all meaningful gram-------')
+                self.output_all_gram_freq(sub_dic)
+            elif ipt[0] == '-p': 
+                print('--------current text--------')
+                self.output_part_plain_text(self.ct, sub_dic)
+            ipt = input('------------\n-t [a-z]* to run word test\n-s [A-Z][a-z] to add a substitution rule\n-p to output current part plaintext\n').split()
 
         # default_freq = 'zqjxkvbpygwfcmuldrhsinoate'
 
@@ -205,4 +220,7 @@ class Decoder:
 
 
 a = Decoder()
+#sub_list = ['Ga','Id','On','Ut','Zh', 'So','Fw', 'Nl', 'Db', 'Ly', 'Mm', 'Ei', 'Wg', 'Yr', 'Hf', 'Pu', 'Ks', 'Av', 'Qj', 'Xp', 'Jc']
+#a.sub_list = sub_list
 a.run_decoder()
+
